@@ -1,0 +1,75 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Compras</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Lista de Compras</h1>
+        <h2>por Alex Soares</h2>
+        <label for="dataCompra">Data da Compra:</label>
+        <input type="date" id="dataCompra" value="">
+        <label for="valorTotal">Valor Total a Ser Gasto (R$):</label>
+        <input type="number" id="valorTotal" placeholder="0.00" min="1000" step="0.01">
+        <label for="valorDisponivel">Valor Disponível (R$):</label>
+        <input type="number" id="valorDisponivel" placeholder="0.00" readonly>
+        
+        <!-- Campos para inserir novos itens -->
+        <div class="item-inputs">
+            <h2>Lista de Itens</h2>
+            <label for="nomeItem">Nome do Item:</label>
+            <input type="text" id="nomeItem" placeholder="Ex: Arroz">
+            <label for="quantidadeItem">Quantidade:</label>
+            <input type="number" id="quantidadeItem" placeholder="Ex: 2" min="1">
+            <label for="precoUnitarioItem">Preço Unitário (R$):</label>
+            <input type="number" id="precoUnitarioItem" placeholder="Ex: 5.00" step="0.01" min="0.01">
+        </div>
+
+        <button onclick="adicionarItem()">Adicionar Item</button>
+
+        <!-- Scroll lateral para a tabela de itens -->
+        <div class="itens-scroll">
+            <table id="itensTable">
+                <thead>
+                    <tr>
+                        <th>Nome do Item</th>
+                        <th>Quantidade</th>
+                        <th>Preço Unitário (R$)</th>
+                        <th>Total por Item (R$)</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Itens serão adicionados aqui dinamicamente -->
+                </tbody>
+            </table>
+        </div>
+        <h3>Total Geral: R$ <span id="totalGeral">0.00</span></h3>
+        <button onclick="salvarCompra()">Salvar Compra</button>
+        <button onclick="exportarParaExcel()">Exportar para Excel</button>
+        <h2>Histórico de Compras</h2>
+        <div class="historico-scroll">
+            <table id="historicoTable">
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Valor Total a Ser Gasto (R$)</th>
+                        <th>Total Geral (R$)</th>
+                        <th>Diferença (R$)</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Histórico será adicionado aqui dinamicamente -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

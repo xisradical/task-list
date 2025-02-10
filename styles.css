@@ -1,0 +1,96 @@
+/* styles.css */
+h1, h2, td, th {
+    text-align: center;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    background-color: #f4f4f9;
+}
+
+.container {
+    max-width: 800px;
+    margin: auto;
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, .1);
+}
+
+h1, h2 {
+    color: #000000;
+    background-color: #c4c4c4;
+    padding: 10px;
+}
+
+label {
+    display: block;
+    margin-top: 10px;
+}
+
+button, input {
+    margin-top: 5px;
+    padding: 8px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+button {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+table {
+    width: 100%;
+    margin-top: 20px;
+    border-collapse: collapse;
+}
+
+table, td, th {
+    border: 1px solid #ddd;
+}
+
+td, th {
+    padding: 10px;
+}
+
+th {
+    background-color: #f2f2f2;
+}
+
+.item-inputs {
+    margin-top: 20px;
+}
+
+.itens-scroll {
+    max-height: 200px;
+    overflow-x: auto;
+    margin-top: 20px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+}
+
+.itens-scroll table {
+    width: auto;
+    min-width: 100%;
+}
+
+.historico-scroll {
+    max-height: 200px;
+    overflow-x: auto;
+    margin-top: 20px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+}
+
+.historico-scroll table {
+    width: auto;
+    min-width: 100%;
+}
