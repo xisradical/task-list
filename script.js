@@ -17,6 +17,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const hoje = new Date().toISOString().split("T")[0];
     dataCompra.value = hoje;
 
+    // Carregar dados salvos no localStorage
+    carregarDadosSalvos();
+
     // Atualiza o valor disponível ao alterar o valor total
     valorTotal.addEventListener("input", () => {
         const valor = parseFloat(valorTotal.value) || 0;
@@ -54,6 +57,9 @@ document.addEventListener("DOMContentLoaded", () => {
         nomeItemInput.value = "";
         quantidadeItemInput.value = "";
         precoUnitarioItemInput.value = "";
+
+        // Salvar dados no localStorage
+        salvarDadosNoLocalStorage();
     }
 
     window.atualizarCalculo = function (element) {
@@ -72,6 +78,9 @@ document.addEventListener("DOMContentLoaded", () => {
         valorDisponivel.value = (valorTotalDisponivel - totalGasto).toFixed(2);
 
         row.querySelector(".total-item").textContent = totalPorItem;
+
+        // Salvar dados no localStorage
+        salvarDadosNoLocalStorage();
     };
 
     window.removerItem = function (button) {
@@ -84,6 +93,9 @@ document.addEventListener("DOMContentLoaded", () => {
         valorDisponivel.value = (valorTotalDisponivel - totalGasto).toFixed(2);
 
         row.remove();
+
+        // Salvar dados no localStorage
+        salvarDadosNoLocalStorage();
     };
 
     function salvarCompra() {
@@ -113,11 +125,69 @@ document.addEventListener("DOMContentLoaded", () => {
         totalGeral.textContent = "0.00";
         valorDisponivel.value = valorTotal.value;
         itensTableBody.innerHTML = "";
+
+        // Limpar dados do localStorage
+        localStorage.removeItem("listaDeCompras");
     }
 
     function exportarParaExcel() {
-        const wb = XLSX.utils.table_to_book(document.getElementById("itensTable"), { sheet: "Itens" });
+        const dados = [];
+        Array.from(itensTableBody.rows).forEach(row => {
+            const nomeItem = row.cells[0].textContent;
+            const quantidade = row.cells[1].querySelector(".quantidade-editavel").value;
+            const precoUnitario = row.cells[2].querySelector(".preco-editavel").value;
+            const totalItem = row.cells[3].textContent;
+            const promocao = row.cells[4].querySelector(".promocao-checkbox").checked ? "Sim" : "Não";
+
+            dados.push([nomeItem, quantidade, precoUnitario, totalItem, promocao]);
+        });
+
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.aoa_to_sheet([
+            ["Nome do Item", "Quantidade", "Preço Unitário (R$)", "Total por Item (R$)", "Promoção"],
+            ...dados
+        ]);
+        XLSX.utils.book_append_sheet(wb, ws, "Itens");
         XLSX.writeFile(wb, "lista_de_compras.xlsx");
+    }
+
+    function salvarDadosNoLocalStorage() {
+        const dados = [];
+        Array.from(itensTableBody.rows).forEach(row => {
+            const nomeItem = row.cells[0].textContent;
+            const quantidade = row.cells[1].querySelector(".quantidade-editavel").value;
+            const precoUnitario = row.cells[2].querySelector(".preco-editavel").value;
+            const totalItem = row.cells[3].textContent;
+            const promocao = row.cells[4].querySelector(".promocao-checkbox").checked;
+
+            dados.push({ nomeItem, quantidade, precoUnitario, totalItem, promocao });
+        });
+
+        localStorage.setItem("listaDeCompras", JSON.stringify(dados));
+    }
+
+    function carregarDadosSalvos() {
+        const dadosSalvos = localStorage.getItem("listaDeCompras");
+        if (!dadosSalvos) return;
+
+        const dados = JSON.parse(dadosSalvos);
+        dados.forEach(item => {
+            const newRow = itensTableBody.insertRow();
+            newRow.innerHTML = `
+                <td>${item.nomeItem}</td>
+                <td><input type="number" class="quantidade-editavel" value="${item.quantidade}" min="1" onchange="atualizarCalculo(this)"></td>
+                <td><input type="number" class="preco-editavel" value="${item.precoUnitario}" step="0.01" min="0.01" onchange="atualizarCalculo(this)"></td>
+                <td class="total-item">${item.totalItem}</td>
+                <td><input type="checkbox" class="promocao-checkbox" ${item.promocao ? "checked" : ""}></td>
+                <td><button onclick="removerItem(this)">X</button></td>
+            `;
+
+            totalGasto += parseFloat(item.totalItem);
+        });
+
+        totalGeral.textContent = totalGasto.toFixed(2);
+        const valorTotalDisponivel = parseFloat(valorTotal.value) || 0;
+        valorDisponivel.value = (valorTotalDisponivel - totalGasto).toFixed(2);
     }
 
     window.adicionarItem = adicionarItem;

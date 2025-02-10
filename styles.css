@@ -19,9 +19,9 @@ body {
 }
 
 h1, h2 {
-    color: #000000;
-    background-color: #d3d3d3;
-    padding: 10px;
+    color: #333;
+    background-color: #cfcfcf;
+    padding: 25px;
 }
 
 label {
