@@ -33,6 +33,7 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
+        const newRow = itensTableBody.insertRow();
         const totalPorItem = (quantidade * precoUnitario).toFixed(2);
         totalGasto += parseFloat(totalPorItem);
         totalGeral.textContent = totalGasto.toFixed(2);
@@ -40,12 +41,12 @@ document.addEventListener("DOMContentLoaded", () => {
         const valorTotalDisponivel = parseFloat(valorTotal.value) || 0;
         valorDisponivel.value = (valorTotalDisponivel - totalGasto).toFixed(2);
 
-        const newRow = itensTableBody.insertRow();
         newRow.innerHTML = `
             <td>${nomeItem}</td>
-            <td>${quantidade}</td>
-            <td>${precoUnitario.toFixed(2)}</td>
-            <td>${totalPorItem}</td>
+            <td><input type="number" class="quantidade-editavel" value="${quantidade}" min="1" onchange="atualizarCalculo(this)"></td>
+            <td><input type="number" class="preco-editavel" value="${precoUnitario.toFixed(2)}" step="0.01" min="0.01" onchange="atualizarCalculo(this)"></td>
+            <td class="total-item">${totalPorItem}</td>
+            <td><input type="checkbox" class="promocao-checkbox"></td>
             <td><button onclick="removerItem(this)">X</button></td>
         `;
 
@@ -55,9 +56,27 @@ document.addEventListener("DOMContentLoaded", () => {
         precoUnitarioItemInput.value = "";
     }
 
+    window.atualizarCalculo = function (element) {
+        const row = element.parentElement.parentElement;
+        const quantidade = parseFloat(row.querySelector(".quantidade-editavel").value) || 0;
+        const precoUnitario = parseFloat(row.querySelector(".preco-editavel").value) || 0;
+        const totalPorItem = (quantidade * precoUnitario).toFixed(2);
+
+        const totalAntigo = parseFloat(row.querySelector(".total-item").textContent) || 0;
+        const diferenca = parseFloat(totalPorItem) - totalAntigo;
+
+        totalGasto += diferenca;
+        totalGeral.textContent = totalGasto.toFixed(2);
+
+        const valorTotalDisponivel = parseFloat(valorTotal.value) || 0;
+        valorDisponivel.value = (valorTotalDisponivel - totalGasto).toFixed(2);
+
+        row.querySelector(".total-item").textContent = totalPorItem;
+    };
+
     window.removerItem = function (button) {
         const row = button.parentElement.parentElement;
-        const totalPorItem = parseFloat(row.cells[3].textContent);
+        const totalPorItem = parseFloat(row.querySelector(".total-item").textContent) || 0;
         totalGasto -= totalPorItem;
         totalGeral.textContent = totalGasto.toFixed(2);
 
