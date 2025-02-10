@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const valorDisponivel = document.getElementById("valorDisponivel");
     const totalGeral = document.getElementById("totalGeral");
     const itensTableBody = document.getElementById("itensTable").getElementsByTagName("tbody")[0];
-    const historicoTableBody = document.getElementById("historicoTable").getElementsByTagName("tbody")[0];
+    const historicoComprasDiv = document.getElementById("historicoCompras");
 
     const nomeItemInput = document.getElementById("nomeItem");
     const quantidadeItemInput = document.getElementById("quantidadeItem");
@@ -103,24 +103,67 @@ document.addEventListener("DOMContentLoaded", () => {
         const valorTotalCompra = parseFloat(valorTotal.value) || 0;
         const diferenca = (valorTotalCompra - totalGasto).toFixed(2);
 
-        const newRow = historicoTableBody.insertRow();
-        newRow.innerHTML = `
-            <td>${data}</td>
-            <td>${valorTotalCompra.toFixed(2)}</td>
-            <td>${totalGasto.toFixed(2)}</td>
-            <td>${diferenca}</td>
-            <td><button onclick="removerHistorico(this)">Remover</button></td>
+        const compraDiv = document.createElement("div");
+        compraDiv.className = "historico-compra";
+
+        const headerDiv = document.createElement("div");
+        headerDiv.className = "historico-compra-header";
+        headerDiv.innerHTML = `
+            <div>
+                Data: ${data} | Valor Total: R$${valorTotalCompra.toFixed(2)} | 
+                Total Geral: R$${totalGasto.toFixed(2)} | Diferença: R$${diferenca}
+            </div>
+            <button onclick="removerHistorico(this)">Remover</button>
         `;
 
-        limparItens();
+        const detalhesDiv = document.createElement("div");
+        detalhesDiv.className = "historico-compra-detalhes";
+        detalhesDiv.innerHTML = `
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nome do Item</th>
+                        <th>Quantidade</th>
+                        <th>Preço Unitário (R$)</th>
+                        <th>Total por Item (R$)</th>
+                        <th>Promoção</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${Array.from(itensTableBody.rows).map(row => `
+                        <tr>
+                            <td>${row.cells[0].textContent}</td>
+                            <td>${row.cells[1].querySelector(".quantidade-editavel").value}</td>
+                            <td>${row.cells[2].querySelector(".preco-editavel").value}</td>
+                            <td>${row.cells[3].textContent}</td>
+                            <td>${row.cells[4].querySelector(".promocao-checkbox").checked ? "Sim" : "Não"}</td>
+                        </tr>
+                    `).join("")}
+                </tbody>
+            </table>
+        `;
+
+        headerDiv.addEventListener("click", () => {
+            detalhesDiv.style.display = detalhesDiv.style.display === "none" ? "block" : "none";
+        });
+
+        compraDiv.appendChild(headerDiv);
+        compraDiv.appendChild(detalhesDiv);
+        historicoComprasDiv.appendChild(compraDiv);
+
+        // Salvar histórico no localStorage
+        salvarHistoricoNoLocalStorage();
     }
 
     window.removerHistorico = function (button) {
-        const row = button.parentElement.parentElement;
-        row.remove();
+        const compraDiv = button.parentElement.parentElement;
+        compraDiv.remove();
+
+        // Salvar histórico no localStorage
+        salvarHistoricoNoLocalStorage();
     };
 
-    function limparItens() {
+    function limparLista() {
         totalGasto = 0;
         totalGeral.textContent = "0.00";
         valorDisponivel.value = valorTotal.value;
@@ -131,7 +174,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function exportarParaExcel() {
-        const dados = [];
+        const dadosItens = [];
         Array.from(itensTableBody.rows).forEach(row => {
             const nomeItem = row.cells[0].textContent;
             const quantidade = row.cells[1].querySelector(".quantidade-editavel").value;
@@ -139,15 +182,16 @@ document.addEventListener("DOMContentLoaded", () => {
             const totalItem = row.cells[3].textContent;
             const promocao = row.cells[4].querySelector(".promocao-checkbox").checked ? "Sim" : "Não";
 
-            dados.push([nomeItem, quantidade, precoUnitario, totalItem, promocao]);
+            dadosItens.push([nomeItem, quantidade, precoUnitario, totalItem, promocao]);
         });
 
         const wb = XLSX.utils.book_new();
-        const ws = XLSX.utils.aoa_to_sheet([
+        const wsItens = XLSX.utils.aoa_to_sheet([
             ["Nome do Item", "Quantidade", "Preço Unitário (R$)", "Total por Item (R$)", "Promoção"],
-            ...dados
+            ...dadosItens
         ]);
-        XLSX.utils.book_append_sheet(wb, ws, "Itens");
+
+        XLSX.utils.book_append_sheet(wb, wsItens, "Itens");
         XLSX.writeFile(wb, "lista_de_compras.xlsx");
     }
 
@@ -166,31 +210,103 @@ document.addEventListener("DOMContentLoaded", () => {
         localStorage.setItem("listaDeCompras", JSON.stringify(dados));
     }
 
-    function carregarDadosSalvos() {
-        const dadosSalvos = localStorage.getItem("listaDeCompras");
-        if (!dadosSalvos) return;
+    function salvarHistoricoNoLocalStorage() {
+        const dados = [];
+        Array.from(historicoComprasDiv.children).forEach(compraDiv => {
+            const headerText = compraDiv.querySelector(".historico-compra-header div").textContent;
+            const detalhesRows = compraDiv.querySelector(".historico-compra-detalhes tbody").children;
 
-        const dados = JSON.parse(dadosSalvos);
-        dados.forEach(item => {
-            const newRow = itensTableBody.insertRow();
-            newRow.innerHTML = `
-                <td>${item.nomeItem}</td>
-                <td><input type="number" class="quantidade-editavel" value="${item.quantidade}" min="1" onchange="atualizarCalculo(this)"></td>
-                <td><input type="number" class="preco-editavel" value="${item.precoUnitario}" step="0.01" min="0.01" onchange="atualizarCalculo(this)"></td>
-                <td class="total-item">${item.totalItem}</td>
-                <td><input type="checkbox" class="promocao-checkbox" ${item.promocao ? "checked" : ""}></td>
-                <td><button onclick="removerItem(this)">X</button></td>
-            `;
+            const itens = Array.from(detalhesRows).map(row => ({
+                nomeItem: row.cells[0].textContent,
+                quantidade: row.cells[1].textContent,
+                precoUnitario: row.cells[2].textContent,
+                totalItem: row.cells[3].textContent,
+                promocao: row.cells[4].textContent
+            }));
 
-            totalGasto += parseFloat(item.totalItem);
+            dados.push({ headerText, itens });
         });
 
-        totalGeral.textContent = totalGasto.toFixed(2);
-        const valorTotalDisponivel = parseFloat(valorTotal.value) || 0;
-        valorDisponivel.value = (valorTotalDisponivel - totalGasto).toFixed(2);
+        localStorage.setItem("historicoCompras", JSON.stringify(dados));
+    }
+
+    function carregarDadosSalvos() {
+        const dadosSalvos = localStorage.getItem("listaDeCompras");
+        if (dadosSalvos) {
+            const dados = JSON.parse(dadosSalvos);
+            dados.forEach(item => {
+                const newRow = itensTableBody.insertRow();
+                newRow.innerHTML = `
+                    <td>${item.nomeItem}</td>
+                    <td><input type="number" class="quantidade-editavel" value="${item.quantidade}" min="1" onchange="atualizarCalculo(this)"></td>
+                    <td><input type="number" class="preco-editavel" value="${item.precoUnitario}" step="0.01" min="0.01" onchange="atualizarCalculo(this)"></td>
+                    <td class="total-item">${item.totalItem}</td>
+                    <td><input type="checkbox" class="promocao-checkbox" ${item.promocao ? "checked" : ""}></td>
+                    <td><button onclick="removerItem(this)">X</button></td>
+                `;
+
+                totalGasto += parseFloat(item.totalItem);
+            });
+
+            totalGeral.textContent = totalGasto.toFixed(2);
+            const valorTotalDisponivel = parseFloat(valorTotal.value) || 0;
+            valorDisponivel.value = (valorTotalDisponivel - totalGasto).toFixed(2);
+        }
+
+        const historicoSalvo = localStorage.getItem("historicoCompras");
+        if (historicoSalvo) {
+            const dados = JSON.parse(historicoSalvo);
+            dados.forEach(compra => {
+                const compraDiv = document.createElement("div");
+                compraDiv.className = "historico-compra";
+
+                const headerDiv = document.createElement("div");
+                headerDiv.className = "historico-compra-header";
+                headerDiv.innerHTML = `
+                    <div>${compra.headerText}</div>
+                    <button onclick="removerHistorico(this)">Remover</button>
+                `;
+
+                const detalhesDiv = document.createElement("div");
+                detalhesDiv.className = "historico-compra-detalhes";
+                detalhesDiv.innerHTML = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nome do Item</th>
+                                <th>Quantidade</th>
+                                <th>Preço Unitário (R$)</th>
+                                <th>Total por Item (R$)</th>
+                                <th>Promoção</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${compra.itens.map(item => `
+                                <tr>
+                                    <td>${item.nomeItem}</td>
+                                    <td>${item.quantidade}</td>
+                                    <td>${item.precoUnitario}</td>
+                                    <td>${item.totalItem}</td>
+                                    <td>${item.promocao}</td>
+                                </tr>
+                            `).join("")}
+                        </tbody>
+                    </table>
+                `;
+
+                headerDiv.addEventListener("click", () => {
+                    detalhesDiv.style.display = detalhesDiv.style.display === "none" ? "block" : "none";
+                });
+
+                compraDiv.appendChild(headerDiv);
+                compraDiv.appendChild(detalhesDiv);
+                historicoComprasDiv.appendChild(compraDiv);
+            });
+        }
     }
 
     window.adicionarItem = adicionarItem;
     window.salvarCompra = salvarCompra;
     window.exportarParaExcel = exportarParaExcel;
+    window.limparLista = limparLista;
 });

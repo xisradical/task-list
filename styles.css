@@ -20,8 +20,8 @@ body {
 
 h1, h2 {
     color: #333;
-    background-color: #cfcfcf;
-    padding: 25px;
+    background-color: #c2c2c2;
+    padding: 15px;
 }
 
 label {
@@ -83,16 +83,60 @@ th {
 }
 
 .historico-scroll {
-    max-height: 200px;
-    overflow-x: auto;
+    max-height: 300px;
+    overflow-y: auto;
     margin-top: 20px;
     border: 1px solid #ddd;
     border-radius: 8px;
+    padding: 10px;
 }
 
-.historico-scroll table {
-    width: auto;
-    min-width: 100%;
+.historico-compra {
+    margin-top: 20px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 10px;
+    background-color: #f9f9f9;
+}
+
+.historico-compra-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    padding: 10px;
+    background-color: #e9ecef;
+    border-radius: 8px;
+}
+
+.historico-compra-header:hover {
+    background-color: #dfe2e5;
+}
+
+.historico-compra-header div {
+    display: flex;
+    gap: 20px;
+}
+
+.historico-compra-header button {
+    padding: 5px 10px;
+    font-size: 12px;
+}
+
+.historico-compra-detalhes {
+    display: none;
+    margin-top: 10px;
+}
+
+.historico-compra-detalhes table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.historico-compra-detalhes th, .historico-compra-detalhes td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
 }
 
 input[type="checkbox"] {

@@ -53,23 +53,13 @@
         <button onclick="exportarParaExcel()">Exportar para Excel</button>
         <h3>Total Geral: R$ <span id="totalGeral">0.00</span></h3>
         <button onclick="salvarCompra()">Salvar Compra</button>
+        <button onclick="limparLista()">Limpar Lista</button>
 
         <h2>Histórico de Compras</h2>
         <div class="historico-scroll">
-            <table id="historicoTable">
-                <thead>
-                    <tr>
-                        <th>Data</th>
-                        <th>Valor Total a Ser Gasto (R$)</th>
-                        <th>Total Geral (R$)</th>
-                        <th>Diferença (R$)</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Histórico será adicionado aqui dinamicamente -->
-                </tbody>
-            </table>
+            <div id="historicoCompras">
+                <!-- Histórico será adicionado aqui dinamicamente -->
+            </div>
         </div>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
